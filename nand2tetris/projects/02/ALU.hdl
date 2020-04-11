@@ -42,5 +42,51 @@ CHIP ALU {
         ng; // 1 if (out < 0),  0 otherwise
 
     PARTS:
-   // Put you code here:
+        Mux16 (a=x, b=false, sel=zx, out=xMux16false);
+        Mux16 (a=y, b=false, sel=zy, out=yMux16false);
+        Not16 (in=xMux16false, out=Not16xMux16false);
+        Not16 (in=yMux16false, out=Not16yMux16false);
+        Mux16 (a=xMux16false, b=Not16xMux16false, sel=nx, out=xzxnx);
+        Mux16 (a=yMux16false, b=Not16yMux16false, sel=ny, out=yzyny);
+        And16 (a=xzxnx, b=yzyny, out=xzxnxAnd16yzyny);
+        Add16 (a=xzxnx, b=yzyny, out=xzxnxAdd16yzyny);
+        Mux16 (a=xzxnxAnd16yzyny, b=xzxnxAdd16yzyny, sel=f, out=fxzxnxyzyny);
+        Not16 (in=fxzxnxyzyny, out=Not16fxzxnxyzyny);
+        Mux16 (a=fxzxnxyzyny, b=Not16fxzxnxyzyny, sel=no, out=res);
+        Or16 (a=res, b=false, out=out);
+        Or16 (a=res, b=false, out[0]=out0, 
+                              out[1]=out1,
+                              out[2]=out2,
+                              out[3]=out3,
+                              out[4]=out4,
+                              out[5]=out5,
+                              out[6]=out6,
+                              out[7]=out7,
+                              out[8]=out8,
+                              out[9]=out9,
+                              out[10]=out10,
+                              out[11]=out11,
+                              out[12]=out12,
+                              out[13]=out13,
+                              out[14]=out14,
+                              out[15]=out15);
+        Or (a=out15, b=false, out=ng);
+        Or8Way (in[0]=out0, 
+                in[1]=out1,
+                in[2]=out2,
+                in[3]=out3,
+                in[4]=out4,
+                in[5]=out5,
+                in[6]=out6,
+                in[7]=out7, out=Or8Wayout7);
+        Or8Way (in[0]=out8, 
+                in[1]=out9,
+                in[2]=out10,
+                in[3]=out11,
+                in[4]=out12,
+                in[5]=out13,
+                in[6]=out14,
+                in[7]=out15, out=Or8Wayout15);
+        Or (a=Or8Wayout7, b=Or8Wayout15, out=Or8Wayout7OrOr8Wayout15);
+        Not (in=Or8Wayout7OrOr8Wayout15, out=zr);
 }
