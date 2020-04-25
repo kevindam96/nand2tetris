@@ -39,5 +39,71 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    // Put your code here:
+    Not (in=instruction[15], out=Notopcode);
+    Mux16 (a=ALUout, b=instruction, sel=Notopcode, out=Mux16instruction);
+
+    // REGISTER A LOAD LOGIC
+    Or (a=Notopcode, b=instruction[5], out=loadRegisterA);
+    ARegister (in=Mux16instruction, load=loadRegisterA, out=RegisterAout);
+    
+    Or16 (a=false, b=RegisterAout, out[0..14]=addressM);
+    
+    Mux16 (a=RegisterAout, b=inM, sel=instruction[12], out=RegisterAoutMux16inM);
+
+    ALU (x=RegisterDout, y=RegisterAoutMux16inM, zx=instruction[11], nx=instruction[10], zy=instruction[9], ny=instruction[8], f=instruction[7], 
+        no=instruction[6], zr=zr, ng=ng, out=ALUout);
+    Or16 (a=ALUout, b=false, out=outM);
+
+    // REGISTER D LOAD LOGIC
+    And (a=instruction[15], b=instruction[4], out=loadRegisterD);
+    DRegister (in=ALUout, load=loadRegisterD, out=RegisterDout);
+    
+    // WRITE TO M LOGIC
+    And (a=instruction[3], b=instruction[15], out=writeM);
+
+    // JUMP LOGIC
+    Not (in=zr, out=Notzr);
+    Not (in=ng, out=Notng);
+    Not (in=instruction[0], out=Notj3);
+    Not (in=instruction[1], out=Notj2);
+    Not (in=instruction[2], out=Notj1);
+    And (a=Notzr, b=Notng, out=ps);
+    //// JGT
+    And (a=instruction[0], b=Notj2, out=Notj2Andj3);
+    And (a=Notj2Andj3, b=Notj1, out=Notj1AndNotj2Andj3);
+    And (a=ps, b=Notj1AndNotj2Andj3, out=psAndNotj1AndNotj2Andj3);
+    And (a=instruction[15], b=psAndNotj1AndNotj2Andj3, out=jgt);
+    //// JEQ
+    And (a=instruction[1], b=Notj1, out=Notj1Andj2);
+    And (a=Notj1Andj2, b=Notj3, out=Notj1Andj2AndNotj3);
+    And (a=zr, b=Notj1Andj2AndNotj3, out=zrAndNotj1Andj2AndNotj3);
+    And (a=instruction[15], b=zrAndNotj1Andj2AndNotj3, out=jeq);
+    //// JGE
+    And (a=Notj1Andj2, b=instruction[0], out=Notj1Andj2Andj3);
+    Or (a=zr, b=ps, out=gezr);
+    And (a=Notj1Andj2Andj3, b=gezr, out=gezrAndNotj1Andj2Andj3);
+    And (a=instruction[15], b=gezrAndNotj1Andj2Andj3, out=jge);
+    //// JLT
+    And (a=instruction[2], b=Notj2, out=j1AndNotj2);
+    And (a=j1AndNotj2, b=Notj3, out=j1AndNotj2AndNotj3);
+    And (a=ng, b=j1AndNotj2AndNotj3, out=ngAndj1AndNotj2AndNotj3);
+    And (a=instruction[15], b=ngAndj1AndNotj2AndNotj3, out=jlt);
+    //// JNE
+    And (a=j1AndNotj2, b=instruction[0], out=j1AndNotj2Andj3);
+    And (a=Notzr, b=j1AndNotj2Andj3, out=NotzrAndj1AndNotj2Andj3);
+    And (a=instruction[15], b=NotzrAndj1AndNotj2Andj3, out=jne);
+    //// JLE
+    And (a=instruction[2], b=instruction[1], out=j1Andj2);
+    And (a=j1Andj2, b=Notj3, out=j1Andj2AndNotj3);
+    Or (a=ng, b=zr, out=lezr);
+    And (a=lezr, b=j1Andj2AndNotj3, out=lezrAndj1Andj2AndNotj3);
+    And (a=instruction[15], b=lezrAndj1Andj2AndNotj3, out=jle);
+    //// JMP
+    And (a=j1Andj2, b=instruction[0], out=j1Andj2Andj3);
+    And (a=instruction[15], b=j1Andj2Andj3, out=jmp);
+    Or8Way(in[0]=jgt, in[1]=jeq, in[2]=jge, in[3]=jlt, in[4]=jne, in[5]=jle, in[6]=jmp, in[7]=false, out=loadPC);
+    PC (in=RegisterAout, load=loadPC, inc=true, reset=reset, out[0..14]=pc);
+
+    
+
 }
