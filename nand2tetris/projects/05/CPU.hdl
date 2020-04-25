@@ -42,19 +42,20 @@ CHIP CPU {
     Not (in=instruction[15], out=Notopcode);
     Mux16 (a=ALUout, b=instruction, sel=Notopcode, out=Mux16instruction);
 
-    // REGISTER A LOAD LOGIC
+    // AREGISTER LOAD LOGIC
     Or (a=Notopcode, b=instruction[5], out=loadRegisterA);
     ARegister (in=Mux16instruction, load=loadRegisterA, out=RegisterAout);
     
+    // SPLIT AREGISTER OUTPUT
     Or16 (a=false, b=RegisterAout, out[0..14]=addressM);
     
+    // ALU
     Mux16 (a=RegisterAout, b=inM, sel=instruction[12], out=RegisterAoutMux16inM);
-
     ALU (x=RegisterDout, y=RegisterAoutMux16inM, zx=instruction[11], nx=instruction[10], zy=instruction[9], ny=instruction[8], f=instruction[7], 
         no=instruction[6], zr=zr, ng=ng, out=ALUout);
     Or16 (a=ALUout, b=false, out=outM);
 
-    // REGISTER D LOAD LOGIC
+    // DREGISTER LOAD LOGIC
     And (a=instruction[15], b=instruction[4], out=loadRegisterD);
     DRegister (in=ALUout, load=loadRegisterD, out=RegisterDout);
     
@@ -102,8 +103,7 @@ CHIP CPU {
     And (a=j1Andj2, b=instruction[0], out=j1Andj2Andj3);
     And (a=instruction[15], b=j1Andj2Andj3, out=jmp);
     Or8Way(in[0]=jgt, in[1]=jeq, in[2]=jge, in[3]=jlt, in[4]=jne, in[5]=jle, in[6]=jmp, in[7]=false, out=loadPC);
-    PC (in=RegisterAout, load=loadPC, inc=true, reset=reset, out[0..14]=pc);
-
     
-
+    // PROGRAM COUNTER
+    PC (in=RegisterAout, load=loadPC, inc=true, reset=reset, out[0..14]=pc);
 }
