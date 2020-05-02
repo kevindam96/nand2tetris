@@ -14,22 +14,27 @@ class Parser
     @c_instruction_jump = ''
   end
 
-  # def initialize_symbol_table
-  #   symbol_table = { 'R0' => '0', 'R1' => '1', 'R2' => '2', 'R3' => '3',
-  #                    'R4' => '4', 'R5' => '5', 'R6' => '6', 'R7' => '7',
-  #                    'R8' => '8', 'R9' => '9', 'R10' => '10', 'R11' => '11',
-  #                    'R12' => '12', 'R13' => '13', 'R14' => '14',
-  #                    'R15' => '15' }
-  #   symbol_table
-  # end
+  attr_reader :op_code
+  attr_reader :a_instruction_value
+  attr_reader :c_instruction_dest
+  attr_reader :c_instruction_comp
+  attr_reader :c_instruction_jump
 
   def parse_instruction(hack_instruction)
-    @op_code = hack_instruction[0]
+    parse_op_code(hack_instruction)
     if @op_code == '0'
       parse_a_instruction(hack_instruction)
     else
       parse_c_instruction(hack_instruction)
     end
+  end
+
+  def parse_op_code(hack_instruction)
+    @op_code = if hack_instruction.index('@').nil?
+                 '1'
+               else
+                 '0'
+               end
   end
 
   def parse_a_instruction(hack_instruction)
