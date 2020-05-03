@@ -13,20 +13,21 @@ class Code
   end
 
   def encode_a_value(a_value)
-    a_value.to_i.to_s(2)
+    a_val_binary = a_value.to_i.to_s(2)
+    a_val_binary.rjust(15, '0')
   end
 
   def encode_c_dest(c_dest_parsed)
-    if c_dest_parsed.nil?
+    if c_dest_parsed.nil? || c_dest_parsed == ''
       '000'
     else
       check_c_dest(c_dest_parsed, 'A') +
-        check_c_dest(c_dest_parsed, 'M') +
-        check_c_dest(c_dest_parsed, 'D')
+        check_c_dest(c_dest_parsed, 'D') +
+        check_c_dest(c_dest_parsed, 'M')
     end
   end
 
-  def check_c_dest_a(c_dest_parsed, dest_char)
+  def check_c_dest(c_dest_parsed, dest_char)
     if c_dest_parsed.index(dest_char).nil?
       '0'
     else
@@ -36,10 +37,10 @@ class Code
 
   def encode_c_comp(c_comp_parsed)
     if c_comp_parsed.index('M').nil?
-      '0'
+      '0' + encode_c_comp_c(c_comp_parsed)
     else
-      '1'
-    end + encode_c_comp_c(c_comp_parsed)
+      '1' + encode_c_comp_c(c_comp_parsed)
+    end
   end
 
   def encode_c_comp_c(c_comp_parsed)
@@ -56,6 +57,10 @@ class Code
       '110000'
     when '!D'
       '001101'
+    when '!A', '!M'
+      '110001'
+    when '-D'
+      '001111'
     when '-A', '-M'
       '110011'
     when 'D+1'
@@ -72,16 +77,18 @@ class Code
       '010011'
     when 'A-D', 'M-D'
       '000111'
-    when 'D&A, D&M'
+    when 'D&A', 'D&M'
       '000000'
-    when 'D|A, D|M'
+    when 'D|A', 'D|M'
       '010101'
+    else
+      puts 'Invalid C instruction'
     end
   end
 
   def encode_c_jump(c_jump_parsed)
     case c_jump_parsed
-    when nil
+    when ''
       '000'
     when 'JGT'
       '001'

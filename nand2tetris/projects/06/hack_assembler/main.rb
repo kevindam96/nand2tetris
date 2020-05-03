@@ -1,7 +1,8 @@
 # frozen_string_literal: true
-require 'parser.rb'
-require 'code.rb'
-require 'symbol_table.rb'
+
+require_relative 'parser.rb'
+require_relative 'code.rb'
+require_relative 'symbol_table.rb'
 
 ##
 # This class is the main class
@@ -18,7 +19,10 @@ class Main
   end
   file_name = ARGV[0]
   if file_name.split('.').size != 2
-    puts 'Invalid argument' if ARGV[0].split('.').size != 2
+    if ARGV[0].split('.').size != 2
+      puts 'Invalid argument: ' + ARGV[0] if ARGV[0].split('.').size != 2
+      puts 'Please place input file in the hack_assembler directory'
+    end
     exit
   end
   if file_name.split('.')[1] != 'asm'
@@ -39,51 +43,62 @@ class Main
   symbol_table = SymbolTable.new
   until asm_file.eof
 
-    # Remove whitespace
+    # Line with whitespace removed
     line = asm_file.readline
     line = line.split('//')[0]
-
-    next if line == ''
-
     line = line.delete(' ')
     line = line.strip
+    next if line == ''
 
     # Check for label ([label_name])
     if !line.index('(').nil? && line.index('(') < line.index(')')
       label = line.split('(')
+      label = label[1]
       label = label.split(')')
-      symbol_table[label] = instructions.size unless symbol_table.key?(label)
+      label = label[0]
+      unless symbol_table.contains_symbol?(label)
+        symbol_table.add_label(label, instructions.size)
+      end
       next
     end
 
     # Line is neither whitespace nor a label, it is an instruction
-    instructions += line
+    instructions.push(line)
 
   end
 
   # Second Pass - begin writing the file in Hack machine language
   parser = Parser.new(symbol_table)
   code = Code.new
-  output_file = file_name.split('.')[0]
-  hack_file = File.new(output_file + '.hack', 'w')
+  output_file = file_name.split('.')[0] + '.hack'
+  hack_file = File.new(output_file, 'w')
+  puts 'Writing file: ' + output_file
+  instruction_number = 1
   instructions.each do |instruction|
-    if !instruction.index('@').nil?
+    instruction = instruction.to_s
+    parser.parse_instruction(instruction)
+    if parser.instruction_type == 'A'
 
       # Process A-Instruction
-      parser.parse_a_instruction(instruction)
-      hack_file.puts(code.encode_op_code(parser.op_code) +
-                     code.encode_a_value(parser.a_instruction_value))
+      out_line = code.encode_op_code(parser.op_code) +
+                 code.encode_a_value(parser.a_instruction_value)
 
-    else
+    elsif parser.instruction_type == 'C'
 
       # Process C-Instruction
-      parser.parse_c_instruction(instruction)
-      hack_file.puts(code.encode_op_code(parser.op_code) + 
-                     '11' +
-                     code.encode_c_comp(parser.c_instruction_comp) +
-                     code.encode_c_dest(parser.c_instruction_dest) +
-                     code.encode_c_jump(parser.c_instruction_jump))
-
+      out_line = code.encode_op_code(parser.op_code) +
+                 '11' +
+                 code.encode_c_comp(parser.c_instruction_comp) +
+                 code.encode_c_dest(parser.c_instruction_dest) +
+                 code.encode_c_jump(parser.c_instruction_jump)
+    else
+      puts 'Invalid instruction type: ' + parser.instruction_type
+      puts 'Invalid instruction type occurred at instruction #' +
+           instruction_number.to_s
     end
+    instruction_number += 1
+    hack_file.puts(out_line)
   end
+
+  puts 'Successfully complete writing ' + output_file
 end

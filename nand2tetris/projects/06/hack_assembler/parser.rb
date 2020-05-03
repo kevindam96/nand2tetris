@@ -7,6 +7,7 @@
 class Parser
   def initialize(symbol_table)
     @op_code = ''
+    @instruction_type = ''
     @symbol_table = symbol_table
     @a_instruction_value = ''
     @c_instruction_dest = ''
@@ -15,6 +16,7 @@ class Parser
   end
 
   attr_reader :op_code
+  attr_reader :instruction_type
   attr_reader :a_instruction_value
   attr_reader :c_instruction_dest
   attr_reader :c_instruction_comp
@@ -23,8 +25,10 @@ class Parser
   def parse_instruction(hack_instruction)
     parse_op_code(hack_instruction)
     if @op_code == '0'
+      @instruction_type = 'A'
       parse_a_instruction(hack_instruction)
     else
+      @instruction_type = 'C'
       parse_c_instruction(hack_instruction)
     end
   end
@@ -47,7 +51,10 @@ class Parser
   end
 
   def parse_a_value_from_symbol(symbol)
-    @a_instruction_value = @symbol_table[symbol]
+    unless @symbol_table.contains_symbol?(symbol)
+      @symbol_table.add_variable(symbol)
+    end
+    @a_instruction_value = @symbol_table.get_value(symbol)
   end
 
   def parse_c_instruction(hack_instruction)
@@ -64,7 +71,9 @@ class Parser
     elsif !has_equals && has_semicolon
       parse_c_jump(hack_instruction)
     else
+      @c_instruction_dest = ''
       @c_instruction_comp = hack_instruction
+      @c_instruction_jump = ''
     end
   end
 
@@ -72,10 +81,12 @@ class Parser
     equals_split = hack_instruction.split('=')
     @c_instruction_dest = equals_split[0]
     @c_instruction_comp = equals_split[1]
+    @c_instruction_jump = ''
   end
 
-  def parse_c_jump
+  def parse_c_jump(hack_instruction)
     semicolon_split = hack_instruction.split(';')
+    @c_instruction_dest = ''
     @c_instruction_jump = semicolon_split[semicolon_split.size - 1]
     @c_instruction_comp = semicolon_split[semicolon_split.size - 2]
   end
@@ -87,12 +98,12 @@ class Parser
     @c_instruction_comp = equals_semicolon_split[0]
     @c_instruction_jump = equals_semicolon_split[1]
   end
+end
 
-  ##
-  # Add the integer method to the String class
-  class String
-    def integer?
-      to_i.to_s == self
-    end
+##
+# Add the integer method to the String class
+class String
+  def integer?
+    to_i.to_s == self
   end
 end
