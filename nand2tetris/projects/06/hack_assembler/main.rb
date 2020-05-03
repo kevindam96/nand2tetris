@@ -66,7 +66,7 @@ class Main
   code = Code.new
   output_file = file_name.split('.')[0]
   hack_file = File.new(output_file + '.hack', 'w')
-  for instruction in instructions
+  instructions.each do |instruction|
     if !instruction.index('@').nil?
 
       # Process A-Instruction
