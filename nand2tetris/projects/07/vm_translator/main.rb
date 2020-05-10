@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'parser.rb'
-require_relative 'code_write.rb'
+require_relative 'code_writer.rb'
 
 ##
 # This is the main class for the VM translator.
@@ -58,6 +58,9 @@ class Main
   output_file = file_name.split('.')[0] + '.asm'
   asm_file = File.new(output_file, 'w')
   puts 'Writing file: ' + output_file
+  code_writer.initialize_labels.each do |asm_line|
+    asm_file.puts(asm_line)
+  end
   vm_lines.each do |vm_line|
     vm_line = vm_line.to_s
     parser.parse(vm_line)

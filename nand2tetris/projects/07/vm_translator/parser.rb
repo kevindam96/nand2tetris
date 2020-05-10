@@ -21,23 +21,19 @@ class Parser
   attr_reader :logical_command
 
   def parse(vm_line)
-    # Remove whitespace
-    vm_line = vm_line.strip
-    vm_line = vm_line.split('//')[0]
-
     # Check for command type and parse
     vm_parts = vm_line.split(' ')
-    if stack_commands.include?(vm_parts[0])
+    if stack_commands.include?(vm_parts[0].to_sym)
       @command_type = :stack
-      @stack_command = vm_parts[0]
-      @memory_segment = vm_parts[1]
+      @stack_command = vm_parts[0].to_sym
+      @memory_segment = vm_parts[1].to_sym
       @memory_segment_index = vm_parts[2].to_i
-    elsif arithmetic_commands.include?(vm_parts[0])
+    elsif arithmetic_commands.include?(vm_parts[0].to_sym)
       @command_type = :arithmetic
-      @arithmetic_command = command
-    elsif logical_commands.include?(vm_parts[0])
+      @arithmetic_command = vm_parts[0].to_sym
+    elsif logical_commands.include?(vm_parts[0].to_sym)
       @command_type = :logical
-      @logical_command = vm_parts[0]
+      @logical_command = vm_parts[0].to_sym
     else
       puts 'Invalid VM command: ' + vm_parts[0]
     end

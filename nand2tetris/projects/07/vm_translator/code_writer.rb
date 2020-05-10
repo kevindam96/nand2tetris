@@ -7,29 +7,42 @@
 # Assembly Language
 class CodeWriter
   def initialize(file_name)
-    @asm_lines = initialize_labels
+    @asm_lines = []
     @file_name = file_name
   end
 
   attr_reader :asm_lines
 
+  def initialize_labels
+    lines = []
+    lines.push('(EQ)')
+    write_set_binary_true(lines)
+    lines.push('(GT)')
+    write_set_binary_true(lines)
+    lines.push('(LT)')
+    write_set_binary_true(lines)
+    lines
+  end
+
   def write_stack_command(command, memory_segment, memory_segment_index)
-    @asm_lines.push('// ' + command + memory_segment +
+    @asm_lines = []
+    @asm_lines.push('// ' + command.to_s + ' ' + memory_segment.to_s + ' ' +
                     memory_segment_index.to_s)
-    case command
+    case command.to_sym
     when :push
       write_push_command(memory_segment, memory_segment_index)
     when :pop
-      write_pop_command
+      write_pop_command(memory_segment, memory_segment_index)
     else
-      raise('Invalid stack command: ' + command + ' ' + memory_segment +
-            ' ' + memory_segment_index.to_s)
+      raise('Invalid stack command: ' + command.to_s + ' ' +
+             memory_segment.to_s + ' ' + memory_segment_index.to_s)
     end
   end
 
   def write_arithmetic_command(command)
-    @asm_lines.push('// ' + command)
-    case command
+    @asm_lines = []
+    @asm_lines.push('// ' + command.to_s)
+    case command.to_sym
     when :add
       write_add_command
     when :sub
@@ -37,13 +50,14 @@ class CodeWriter
     when :neg
       write_neg_command
     else
-      raise('Invalid arithmetic command: ' + command)
+      raise('Invalid arithmetic command: ' + command.to_s)
     end
   end
 
   def write_logical_command(command)
-    @asm_lines.push('// ' + command)
-    case command
+    @asm_lines = []
+    @asm_lines.push('// ' + command.to_s)
+    case command.to_sym
     when :eq
       write_eq_command
     when :gt
@@ -57,14 +71,14 @@ class CodeWriter
     when :not
       write_not_command
     else
-      raise('Invalid logical command: ' + command)
+      raise('Invalid logical command: ' + command.to_s)
     end
   end
 
   private
 
   def write_push_command(memory_segment, memory_segment_index)
-    case memory_segment
+    case memory_segment.to_sym
     when :local
       write_push_local(memory_segment_index)
     when :argument
@@ -82,14 +96,16 @@ class CodeWriter
     when :temp
       write_push_temp(memory_segment_index)
     else
-      raise('Invalid memory segment: ' + memory_segment)
+      raise('Invalid memory segment: ' + memory_segment.to_s)
     end
   end
 
   def write_push_constant(memory_segment_index)
+    @asm_lines.push('@' + memory_segment_index.to_s)
+    @asm_lines.push('D=A')
     @asm_lines.push('@SP')
     @asm_lines.push('A=M')
-    @asm_lines.push('M=' + memory_segment_index.to_s)
+    @asm_lines.push('M=D')
     @asm_lines.push('@SP')
     @asm_lines.push('M=M+1')
   end
@@ -155,7 +171,7 @@ class CodeWriter
   end
 
   def write_pop_command(memory_segment, memory_segment_index)
-    case memory_segment
+    case memory_segment.to_sym
     when :local
       write_pop_local(memory_segment_index)
     when :argument
@@ -178,66 +194,38 @@ class CodeWriter
   end
 
   def write_pop_local(memory_segment_index)
-    @asm_lines.push('@SP')
-    @asm_lines.push('A=A-1')
-    @asm_lines.push('D=M')
     @asm_lines.push('@LCL')
-    [1..memory_segment_index].each { @asm_lines.push('A=A+1') }
-    @asm_lines.push('M=D')
-    set_stack_after_pop
+    write_pop_to_memory(memory_segment_index)
   end
 
   def write_pop_argument(memory_segment_index)
-    @asm_lines.push('@SP')
-    @asm_lines.push('A=A-1')
-    @asm_lines.push('D=M')
     @asm_lines.push('@ARG')
-    [1..memory_segment_index].each { @asm_lines.push('A=A+1') }
-    @asm_lines.push('M=D')
-    set_stack_after_pop
+    write_pop_to_memory(memory_segment_index)
   end
 
   def write_pop_this(memory_segment_index)
-    @asm_lines.push('@SP')
-    @asm_lines.push('A=A-1')
-    @asm_lines.push('D=M')
     @asm_lines.push('@THIS')
-    [1..memory_segment_index].each { @asm_lines.push('A=A+1') }
-    @asm_lines.push('M=D')
-    set_stack_after_pop
+    write_pop_to_memory(memory_segment_index)
   end
 
   def write_pop_that(memory_segment_index)
-    @asm_lines.push('@SP')
-    @asm_lines.push('A=A-1')
-    @asm_lines.push('D=M')
     @asm_lines.push('@THAT')
-    [1..memory_segment_index].each { @asm_lines.push('A=A+1') }
-    @asm_lines.push('M=D')
-    set_stack_after_pop
+    write_pop_to_memory(memory_segment_index)
   end
 
   def write_pop_static(memory_segment_index)
-    @asm_lines.push('@SP')
-    @asm_lines.push('A=A-1')
-    @asm_lines.push('D=M')
     @asm_lines.push('@' + @file_name + '.' + memory_segment_index.to_s)
-    @asm_lines.push('M=D')
-    set_stack_after_pop
+    write_pop_to_memory(memory_segment_index)
   end
 
   def write_pop_temp(memory_segment_index)
-    @asm_lines.push('@SP')
-    @asm_lines.push('A=A-1')
-    @asm_lines.push('D=M')
     @asm_lines.push('@5')
-    [1..memory_segment_index].each { @asm_lines.push('A=A+1') }
-    @asm_lines.push('M=D')
-    set_stack_after_pop
+    write_pop_to_memory(memory_segment_index)
   end
 
   def write_pop_pointer(memory_segment_index)
     @asm_lines.push('@SP')
+    @asm_lines.push('A=M')
     @asm_lines.push('A=A-1')
     @asm_lines.push('D=M')
     case memory_segment_index
@@ -253,6 +241,22 @@ class CodeWriter
     set_stack_after_pop
   end
 
+  def write_pop_to_memory(memory_segment_index)
+    @asm_lines.push('D=M')
+    @asm_lines.push('@' + memory_segment_index.to_s)
+    @asm_lines.push('D=D+A')
+    @asm_lines.push('@R13')
+    @asm_lines.push('M=D')
+    @asm_lines.push('@SP')
+    @asm_lines.push('A=M')
+    @asm_lines.push('A=A-1')
+    @asm_lines.push('D=M')
+    @asm_lines.push('@R13')
+    @asm_lines.push('A=M')
+    @asm_lines.push('M=D')
+    set_stack_after_pop
+  end
+
   def set_stack_after_pop
     @asm_lines.push('@SP')
     @asm_lines.push('M=M-1')
@@ -260,6 +264,7 @@ class CodeWriter
 
   def write_add_command
     @asm_lines.push('@SP')
+    @asm_lines.push('A=M')
     @asm_lines.push('A=A-1')
     @asm_lines.push('A=A-1')
     @asm_lines.push('D=M')
@@ -272,6 +277,7 @@ class CodeWriter
 
   def write_sub_command
     @asm_lines.push('@SP')
+    @asm_lines.push('A=M')
     @asm_lines.push('A=A-1')
     @asm_lines.push('A=A-1')
     @asm_lines.push('D=M')
@@ -284,22 +290,14 @@ class CodeWriter
 
   def write_neg_command
     @asm_lines.push('@SP')
+    @asm_lines.push('A=M')
     @asm_lines.push('A=A-1')
     @asm_lines.push('M=-M')
   end
 
-  def initialize_labels
-    lines = []
-    lines.push('(EQ)')
-    write_set_binary_true(lines)
-    lines.push('(GT)')
-    write_set_binary_true(lines)
-    lines.push('(LT)')
-    write_set_binary_true(lines)
-  end
-
   def write_eq_command
     @asm_lines.push('@SP')
+    @asm_lines.push('A=M')
     @asm_lines.push('A=A-1')
     @asm_lines.push('A=A-1')
     @asm_lines.push('D=M')
@@ -312,6 +310,7 @@ class CodeWriter
 
   def write_gt_command
     @asm_lines.push('@SP')
+    @asm_lines.push('A=M')
     @asm_lines.push('A=A-1')
     @asm_lines.push('A=A-1')
     @asm_lines.push('D=M')
@@ -324,6 +323,7 @@ class CodeWriter
 
   def write_lt_command
     @asm_lines.push('@SP')
+    @asm_lines.push('A=M')
     @asm_lines.push('A=A-1')
     @asm_lines.push('A=A-1')
     @asm_lines.push('D=M')
@@ -336,6 +336,7 @@ class CodeWriter
 
   def write_and_command
     @asm_lines.push('@SP')
+    @asm_lines.push('A=M')
     @asm_lines.push('A=A-1')
     @asm_lines.push('A=A-1')
     @asm_lines.push('D=M')
@@ -348,6 +349,7 @@ class CodeWriter
 
   def write_or_command
     @asm_lines.push('@SP')
+    @asm_lines.push('A=M')
     @asm_lines.push('A=A-1')
     @asm_lines.push('A=A-1')
     @asm_lines.push('D=M')
@@ -360,6 +362,7 @@ class CodeWriter
 
   def write_not_command
     @asm_lines.push('@SP')
+    @asm_lines.push('A=M')
     @asm_lines.push('A=A-1')
     @asm_lines.push('M=!D')
     set_stack_after_pop
@@ -369,7 +372,7 @@ class CodeWriter
     lines.push('@65535')
     lines.push('D=A')
     lines.push('@SP')
-    lines.push('M=M-1')
+    lines.push('A=M')
     lines.push('A=A-1')
     lines.push('A=A-1')
     lines.push('M=D')
@@ -380,9 +383,10 @@ class CodeWriter
     @asm_lines.push('@0')
     @asm_lines.push('D=A')
     @asm_lines.push('@SP')
-    @asm_lines.push('M=M-1')
+    @asm_lines.push('A=M')
     @asm_lines.push('A=A-1')
     @asm_lines.push('A=A-1')
     @asm_lines.push('M=D')
+    set_stack_after_pop
   end
 end
