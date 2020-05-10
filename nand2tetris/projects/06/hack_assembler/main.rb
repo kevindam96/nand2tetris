@@ -19,10 +19,8 @@ class Main
   end
   file_name = ARGV[0]
   if file_name.split('.').size != 2
-    if ARGV[0].split('.').size != 2
-      puts 'Invalid argument: ' + ARGV[0] if ARGV[0].split('.').size != 2
-      puts 'Please place input file in the hack_assembler directory'
-    end
+    puts 'Invalid argument: ' + ARGV[0] if ARGV[0].split('.').size != 2
+    puts 'Please place input file in the hack_assembler directory'
     exit
   end
   if file_name.split('.')[1] != 'asm'
