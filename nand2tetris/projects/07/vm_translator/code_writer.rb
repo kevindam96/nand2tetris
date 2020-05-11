@@ -104,26 +104,31 @@ class CodeWriter
 
   def write_push_local(memory_segment_index)
     @asm_lines.push('@LCL')
+    @asm_lines.push('D=M')
     write_push_to_stack(memory_segment_index)
   end
 
   def write_push_argument(memory_segment_index)
     @asm_lines.push('@ARG')
+    @asm_lines.push('D=M')
     write_push_to_stack(memory_segment_index)
   end
 
   def write_push_this(memory_segment_index)
     @asm_lines.push('@THIS')
+    @asm_lines.push('D=M')
     write_push_to_stack(memory_segment_index)
   end
 
   def write_push_that(memory_segment_index)
     @asm_lines.push('@THAT')
+    @asm_lines.push('D=M')
     write_push_to_stack(memory_segment_index)
   end
 
   def write_push_static(memory_segment_index)
     @asm_lines.push('@' + @file_name + '.' + memory_segment_index.to_s)
+    @asm_lines.push('D=M')
     write_push_to_stack(memory_segment_index)
   end
 
@@ -147,11 +152,11 @@ class CodeWriter
 
   def write_push_temp(memory_segment_index)
     @asm_lines.push('@5')
+    @asm_lines.push('D=A')
     write_push_to_stack(memory_segment_index)
   end
 
   def write_push_to_stack(memory_segment_index)
-    @asm_lines.push('D=M')
     @asm_lines.push('@' + memory_segment_index.to_s)
     @asm_lines.push('A=D+A')
     @asm_lines.push('D=M')
@@ -187,31 +192,37 @@ class CodeWriter
 
   def write_pop_local(memory_segment_index)
     @asm_lines.push('@LCL')
+    @asm_lines.push('D=M')
     write_pop_to_memory(memory_segment_index)
   end
 
   def write_pop_argument(memory_segment_index)
     @asm_lines.push('@ARG')
+    @asm_lines.push('D=M')
     write_pop_to_memory(memory_segment_index)
   end
 
   def write_pop_this(memory_segment_index)
     @asm_lines.push('@THIS')
+    @asm_lines.push('D=M')
     write_pop_to_memory(memory_segment_index)
   end
 
   def write_pop_that(memory_segment_index)
     @asm_lines.push('@THAT')
+    @asm_lines.push('D=M')
     write_pop_to_memory(memory_segment_index)
   end
 
   def write_pop_static(memory_segment_index)
     @asm_lines.push('@' + @file_name + '.' + memory_segment_index.to_s)
+    @asm_lines.push('D=M')
     write_pop_to_memory(memory_segment_index)
   end
 
   def write_pop_temp(memory_segment_index)
     @asm_lines.push('@5')
+    @asm_lines.push('D=A')
     write_pop_to_memory(memory_segment_index)
   end
 
@@ -234,7 +245,6 @@ class CodeWriter
   end
 
   def write_pop_to_memory(memory_segment_index)
-    @asm_lines.push('D=M')
     @asm_lines.push('@' + memory_segment_index.to_s)
     @asm_lines.push('D=D+A')
     @asm_lines.push('@R13')
