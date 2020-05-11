@@ -141,7 +141,6 @@ class CodeWriter
       raise('Invalid pointer for push pointer command: ' +
             memory_segment_index.to_s)
     end
-    @asm_lines.push('A=M')
     @asm_lines.push('D=M')
     @asm_lines.push('@SP')
     @asm_lines.push('A=M')
