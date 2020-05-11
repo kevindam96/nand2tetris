@@ -9,20 +9,12 @@ class CodeWriter
   def initialize(file_name)
     @asm_lines = []
     @file_name = file_name
+    @eq_count = 0
+    @gt_count = 0
+    @lt_count = 0
   end
 
   attr_reader :asm_lines
-
-  def initialize_labels
-    lines = []
-    lines.push('(EQ)')
-    write_set_binary_true(lines)
-    lines.push('(GT)')
-    write_set_binary_true(lines)
-    lines.push('(LT)')
-    write_set_binary_true(lines)
-    lines
-  end
 
   def write_stack_command(command, memory_segment, memory_segment_index)
     @asm_lines = []
@@ -303,9 +295,32 @@ class CodeWriter
     @asm_lines.push('D=M')
     @asm_lines.push('A=A+1')
     @asm_lines.push('D=D-M')
-    @asm_lines.push('@EQ')
+    @asm_lines.push('@EQ' + @eq_count.to_s)
     @asm_lines.push('D;JEQ')
-    write_set_binary_false
+    @asm_lines.push('@NEQ' + @eq_count.to_s)
+    @asm_lines.push('0;JMP')
+    @asm_lines.push('(EQ' + @eq_count.to_s + ')')
+    @asm_lines.push('@SP')
+    @asm_lines.push('A=M')
+    @asm_lines.push('A=A-1')
+    @asm_lines.push('A=A-1')
+    @asm_lines.push('M=-1')
+    @asm_lines.push('@SP')
+    @asm_lines.push('M=M-1')
+    @asm_lines.push('@END_EQ' + @eq_count.to_s)
+    @asm_lines.push('0;JMP')
+    @asm_lines.push('(NEQ' + @eq_count.to_s + ')')
+    @asm_lines.push('@0')
+    @asm_lines.push('D=A')
+    @asm_lines.push('@SP')
+    @asm_lines.push('A=M')
+    @asm_lines.push('A=A-1')
+    @asm_lines.push('A=A-1')
+    @asm_lines.push('M=D')
+    @asm_lines.push('@SP')
+    @asm_lines.push('M=M-1')
+    @asm_lines.push('(END_EQ' + @eq_count.to_s + ')')
+    @eq_count += 1
   end
 
   def write_gt_command
@@ -316,9 +331,30 @@ class CodeWriter
     @asm_lines.push('D=M')
     @asm_lines.push('A=A+1')
     @asm_lines.push('D=D-M')
-    @asm_lines.push('@GT')
+    @asm_lines.push('@GT' + @gt_count.to_s)
     @asm_lines.push('D;JGT')
-    write_set_binary_false
+    @asm_lines.push('@NGT' + @gt_count.to_s)
+    @asm_lines.push('0;JMP')
+    @asm_lines.push('(GT' + @gt_count.to_s + ')')
+    @asm_lines.push('@SP')
+    @asm_lines.push('A=M')
+    @asm_lines.push('A=A-1')
+    @asm_lines.push('A=A-1')
+    @asm_lines.push('M=-1')
+    @asm_lines.push('@SP')
+    @asm_lines.push('M=M-1')
+    @asm_lines.push('@END_GT' + @gt_count.to_s)
+    @asm_lines.push('0;JMP')
+    @asm_lines.push('(NGT' + @gt_count.to_s + ')')
+    @asm_lines.push('@SP')
+    @asm_lines.push('A=M')
+    @asm_lines.push('A=A-1')
+    @asm_lines.push('A=A-1')
+    @asm_lines.push('M=0')
+    @asm_lines.push('@SP')
+    @asm_lines.push('M=M-1')
+    @asm_lines.push('(END_GT' + @gt_count.to_s + ')')
+    @gt_count += 1
   end
 
   def write_lt_command
@@ -329,9 +365,32 @@ class CodeWriter
     @asm_lines.push('D=M')
     @asm_lines.push('A=A+1')
     @asm_lines.push('D=D-M')
-    @asm_lines.push('@GT')
-    @asm_lines.push('D;JGT')
-    write_set_binary_false
+    @asm_lines.push('@LT' + @lt_count.to_s)
+    @asm_lines.push('D;JLT')
+    @asm_lines.push('@NLT' + @lt_count.to_s)
+    @asm_lines.push('0;JMP')
+    @asm_lines.push('(LT' + @lt_count.to_s + ')')
+    @asm_lines.push('@SP')
+    @asm_lines.push('A=M')
+    @asm_lines.push('A=A-1')
+    @asm_lines.push('A=A-1')
+    @asm_lines.push('M=-1')
+    @asm_lines.push('@SP')
+    @asm_lines.push('M=M-1')
+    @asm_lines.push('@END_LT' + @lt_count.to_s)
+    @asm_lines.push('0;JMP')
+    @asm_lines.push('(NLT' + @lt_count.to_s + ')')
+    @asm_lines.push('@0')
+    @asm_lines.push('D=A')
+    @asm_lines.push('@SP')
+    @asm_lines.push('A=M')
+    @asm_lines.push('A=A-1')
+    @asm_lines.push('A=A-1')
+    @asm_lines.push('M=D')
+    @asm_lines.push('@SP')
+    @asm_lines.push('M=M-1')
+    @asm_lines.push('(END_LT' + @lt_count.to_s + ')')
+    @lt_count += 1
   end
 
   def write_and_command
@@ -365,28 +424,5 @@ class CodeWriter
     @asm_lines.push('A=M')
     @asm_lines.push('A=A-1')
     @asm_lines.push('M=!D')
-    set_stack_after_pop
-  end
-
-  def write_set_binary_true(lines)
-    lines.push('@65535')
-    lines.push('D=A')
-    lines.push('@SP')
-    lines.push('A=M')
-    lines.push('A=A-1')
-    lines.push('A=A-1')
-    lines.push('M=D')
-    lines
-  end
-
-  def write_set_binary_false
-    @asm_lines.push('@0')
-    @asm_lines.push('D=A')
-    @asm_lines.push('@SP')
-    @asm_lines.push('A=M')
-    @asm_lines.push('A=A-1')
-    @asm_lines.push('A=A-1')
-    @asm_lines.push('M=D')
-    set_stack_after_pop
   end
 end
