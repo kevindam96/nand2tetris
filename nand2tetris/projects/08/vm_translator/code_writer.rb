@@ -12,6 +12,7 @@ class CodeWriter
     @eq_count = 0
     @gt_count = 0
     @lt_count = 0
+    @calls_in_fn_count = {}
   end
 
   attr_reader :asm_lines
@@ -77,6 +78,20 @@ class CodeWriter
       write_if_goto_command(label)
     when :label
       write_label_command(label)
+    end
+  end
+
+  def write_function_command(command, name, n_args)
+    @asm_lines = []
+    @asm_lines.push('// ' + command.to_s + ' ' +
+                    name.to_s + ' ' + n_args.to_s)
+    case command.to_sym
+    when :call
+      write_call_command(name, n_args)
+    when :function
+      write_fn_defn_command(name, n_args)
+    when :return
+      write_return_command(name)
     end
   end
 
@@ -465,5 +480,177 @@ class CodeWriter
 
   def write_label_command(label)
     @asm_lines.push('(' + label.to_s + ')')
+  end
+
+  def write_call_command(name, n_args)
+    write_call_save_current_frame
+    write_call_reposition_arg(n_args)
+    write_call_reposition_lcl
+    write_goto_command(name)
+    write_call_return_label(name)
+  end
+
+  def write_call_save_current_frame
+    write_push_call_return_add
+    write_push_call_lcl
+    write_push_call_arg
+    write_push_call_this
+    write_push_call_that
+  end
+
+  def write_push_call_return_add
+    @asm_lines.push('@SP')
+    @asm_lines.push('D=A')
+    @asm_lines.push('@SP')
+    @asm_lines.push('A=M')
+    @asm_lines.push('M=D')
+    @asm_lines.push('@SP')
+    @asm_lines.push('M=M+1')
+  end
+
+  def write_push_call_lcl
+    @asm_lines.push('@LCL')
+    @asm_lines.push('D=A')
+    @asm_lines.push('@SP')
+    @asm_lines.push('A=M')
+    @asm_lines.push('M=D')
+    @asm_lines.push('@SP')
+    @asm_lines.push('M=M+1')
+  end
+
+  def write_push_call_arg
+    @asm_lines.push('@ARG')
+    @asm_lines.push('D=A')
+    @asm_lines.push('@SP')
+    @asm_lines.push('A=M')
+    @asm_lines.push('M=D')
+    @asm_lines.push('@SP')
+    @asm_lines.push('M=M+1')
+  end
+
+  def write_push_call_this
+    @asm_lines.push('@THIS')
+    @asm_lines.push('D=A')
+    @asm_lines.push('@SP')
+    @asm_lines.push('A=M')
+    @asm_lines.push('M=D')
+    @asm_lines.push('@SP')
+    @asm_lines.push('M=M+1')
+  end
+
+  def write_push_call_that
+    @asm_lines.push('@THAT')
+    @asm_lines.push('D=A')
+    @asm_lines.push('@SP')
+    @asm_lines.push('A=M')
+    @asm_lines.push('M=D')
+    @asm_lines.push('@SP')
+    @asm_lines.push('M=M+1')
+  end
+
+  def write_call_reposition_arg(n_args)
+    @asm_lines.push('@SP')
+    @asm_lines.push('D=A')
+    @asm_lines.push('@5')
+    @asm_lines.push('D=D-A')
+    @asm_lines.push('@' + n_args.to_s)
+    @asm_lines.push('D=D-A')
+    @asm_lines.push('@ARG')
+    @asm_lines.push('M=D')
+  end
+
+  def write_call_reposition_lcl
+    @asm_lines.push('@SP')
+    @asm_lines.push('D=M')
+    @asm_lines.push('@LCL')
+    @asm_lines.push('M=D')
+  end
+
+  def write_call_return_label(name)
+    if @calls_in_fn_count.key?(name.to_sym)
+      @calls_in_fn_count[name.to_sym] = 0
+    else
+      @calls_in_fn_count[name.to_sym] += 0
+    end
+    @asm_lines.push('(' + name.to_s + '$ret.' +
+                    @calls_in_fn_count[name.to_sym].to_s + ')')
+  end
+
+  def write_fn_defn_command(name, n_args)
+    @asm_lines.push('(' + name.to_s + ')')
+    [1..n_args.to_i].each { write_push_constant(0) }
+  end
+
+  def write_return_command(name)
+    @asm_lines.push('@LCL')
+    @asm_lines.push('D=M')
+    @asm_lines.push('@' + name.to_s + '_ENDFRAME')
+    @asm_lines.push('M=D')
+    write_pop_command(:argument, 0)
+    write_return_reposition_sp
+    write_return_reinstate_caller_state(name)
+    write_return_to_return_address(name)
+  end
+
+  def write_return_reposition_sp
+    @asm_lines.push('@ARG')
+    @asm_lines.push('D=M+1')
+    @asm_lines.push('@SP')
+    @asm_lines.push('M=D')
+  end
+
+  def write_return_reinstate_caller_state(name)
+    write_return_reinstate_that(name)
+    write_return_reinstate_this(name)
+    write_return_reinstate_arg(name)
+    write_return_reinstate_lcl(name)
+  end
+
+  def write_return_reinstate_that(name)
+    @asm_lines.push('@' + name.to_s + '_ENDFRAME')
+    @asm_lines.push('D=M')
+    @asm_lines.push('@1')
+    @asm_lines.push('A=D-A')
+    @asm_lines.push('D=M')
+    @asm_lines.push('@THAT')
+    @asm_lines.push('M=D')
+  end
+
+  def write_return_reinstate_this(name)
+    @asm_lines.push('@' + name.to_s + '_ENDFRAME')
+    @asm_lines.push('D=M')
+    @asm_lines.push('@2')
+    @asm_lines.push('A=D-A')
+    @asm_lines.push('D=M')
+    @asm_lines.push('@THIS')
+    @asm_lines.push('M=D')
+  end
+
+  def write_return_reinstate_arg(name)
+    @asm_lines.push('@' + name.to_s + '_ENDFRAME')
+    @asm_lines.push('D=M')
+    @asm_lines.push('@3')
+    @asm_lines.push('A=D-A')
+    @asm_lines.push('D=M')
+    @asm_lines.push('@ARG')
+    @asm_lines.push('M=D')
+  end
+
+  def write_return_reinstate_lcl(name)
+    @asm_lines.push('@' + name.to_s + '_ENDFRAME')
+    @asm_lines.push('D=M')
+    @asm_lines.push('@4')
+    @asm_lines.push('A=D-A')
+    @asm_lines.push('D=M')
+    @asm_lines.push('@LCL')
+    @asm_lines.push('M=D')
+  end
+
+  def write_return_to_return_address(name)
+    @asm_lines.push('@' + name.to_s + '_ENDFRAME')
+    @asm_lines.push('D=M')
+    @asm_lines.push('@5')
+    @asm_lines.push('A=D-A')
+    @asm_lines.push('A=M')
   end
 end

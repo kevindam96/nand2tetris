@@ -26,6 +26,9 @@ class Parser
   attr_reader :logical_command
   attr_reader :branching_command
   attr_reader :branching_label
+  attr_reader :function_command
+  attr_reader :function_name
+  attr_reader :n_args
 
   def parse(vm_line)
     # Check for command type and parse

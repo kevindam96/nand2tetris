@@ -73,7 +73,9 @@ class Main
       code_writer.write_branching_command(parser.branching_command,
                                           parser.branching_label)
     elsif parser.function_command?
-      raise('Function commands not implemented yet')
+      code_writer.write_function_command(parser.function_command,
+                                         parser.function_name,
+                                         parser.n_args)
     else
       raise('Invalid VM command: ' + vm_line)
     end
