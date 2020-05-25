@@ -3,6 +3,7 @@
 D=A
 @SP
 M=D
+// call Sys.init
 @Sys.init$ret.0
 D=A
 @SP
