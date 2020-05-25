@@ -3,26 +3,6 @@
 D=A
 @SP
 M=D
-// initialize local pointer
-@300
-D=A
-@SP
-M=D
-// initialize argument pointer
-@400
-D=A
-@SP
-M=D
-// initialize this pointer
-@3000
-D=A
-@SP
-M=D
-// initialize that pointer
-@4000
-D=A
-@SP
-M=D
 // call Sys.init
 @Sys.init$ret.0
 D=A
@@ -86,21 +66,11 @@ M=D
 @SP
 M=M+1
 // pop static 0
+@SP
+AM=M-1
+D=M
 @Class1.0
-D=M
-@0
-D=D+A
-@R13
 M=D
-@SP
-A=M
-A=A-1
-D=M
-@R13
-A=M
-M=D
-@SP
-M=M-1
 // push argument 1
 @ARG
 D=M
@@ -113,21 +83,11 @@ M=D
 @SP
 M=M+1
 // pop static 1
+@SP
+AM=M-1
+D=M
 @Class1.1
-D=M
-@1
-D=D+A
-@R13
 M=D
-@SP
-A=M
-A=A-1
-D=M
-@R13
-A=M
-M=D
-@SP
-M=M-1
 // push constant 0
 @0
 D=A
@@ -203,9 +163,6 @@ A=M
 // push static 0
 @Class1.0
 D=M
-@0
-A=D+A
-D=M
 @SP
 A=M
 M=D
@@ -213,9 +170,6 @@ M=D
 M=M+1
 // push static 1
 @Class1.1
-D=M
-@1
-A=D+A
 D=M
 @SP
 A=M
@@ -585,21 +539,11 @@ M=D
 @SP
 M=M+1
 // pop static 0
+@SP
+AM=M-1
+D=M
 @Class2.0
-D=M
-@0
-D=D+A
-@R13
 M=D
-@SP
-A=M
-A=A-1
-D=M
-@R13
-A=M
-M=D
-@SP
-M=M-1
 // push argument 1
 @ARG
 D=M
@@ -612,21 +556,11 @@ M=D
 @SP
 M=M+1
 // pop static 1
+@SP
+AM=M-1
+D=M
 @Class2.1
-D=M
-@1
-D=D+A
-@R13
 M=D
-@SP
-A=M
-A=A-1
-D=M
-@R13
-A=M
-M=D
-@SP
-M=M-1
 // push constant 0
 @0
 D=A
@@ -702,9 +636,6 @@ A=M
 // push static 0
 @Class2.0
 D=M
-@0
-A=D+A
-D=M
 @SP
 A=M
 M=D
@@ -712,9 +643,6 @@ M=D
 M=M+1
 // push static 1
 @Class2.1
-D=M
-@1
-A=D+A
 D=M
 @SP
 A=M

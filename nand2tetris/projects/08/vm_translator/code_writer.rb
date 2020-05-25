@@ -293,7 +293,11 @@ class CodeWriter
   def write_push_static(memory_segment_index)
     @asm_lines.push('@' + @vm_file_name.to_s + '.' + memory_segment_index.to_s)
     @asm_lines.push('D=M')
-    write_push_to_stack(memory_segment_index)
+    @asm_lines.push('@SP')
+    @asm_lines.push('A=M')
+    @asm_lines.push('M=D')
+    @asm_lines.push('@SP')
+    @asm_lines.push('M=M+1')
   end
 
   def write_push_pointer(memory_segment_index)
@@ -378,9 +382,11 @@ class CodeWriter
   end
 
   def write_pop_static(memory_segment_index)
-    @asm_lines.push('@' + @vm_file_name.to_s + '.' + memory_segment_index.to_s)
+    @asm_lines.push('@SP')
+    @asm_lines.push('AM=M-1')
     @asm_lines.push('D=M')
-    write_pop_to_memory(memory_segment_index)
+    @asm_lines.push('@' + @vm_file_name.to_s + '.' + memory_segment_index.to_s)
+    @asm_lines.push('M=D')
   end
 
   def write_pop_temp(memory_segment_index)
