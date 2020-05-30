@@ -1,0 +1,10 @@
+/** Implements a generic Tetris piece. */
+class Piece {
+
+    field int x;
+    field int y;
+
+    constructor Piece new() {
+        // TODO
+    }
+}
