@@ -3,12 +3,43 @@ class TetrisGameScreen {
 
     field int score;
     field int level;
+    field int linesCleared;
+    field int activePieceX;
+    field int activePieceY;
+    field Array board;            // this is an array of arrays
+                                  // 20 rows, 10 columns
+                                  // each entry can be 0, 1, or 2
+                                  // // 0 is an empty space
+                                  // // 1 is a space occupied by part of a landed   
+                                  // //   piece
+                                  // // 2 is a space occupied by part of a falling 
+                                  // //   piece
     field Piece activePiece;
     field Piece nextPiece;
 
     constructor TetrisGameScreen new() {
+        // declare and initialize variables
+        var int i;
+        var Array row;
         let score = 0;
-        let level = 1;
+        let level = 0;
+        let linesCleared = 0;
+        let board = Array.new(20);
+
+        // initialize board
+        let i = 0;
+        let row = Array.new(10);
+        while (i < 10) {
+            let row[i] = 0;
+            let i = i + 1;
+        }
+        let i = 0;
+        while (i < 20) {
+            let board[i] = row;
+            let i = i + 1;
+        }
+
+        // draw game screen and board in first state
         do drawStatic();
         return this;
     }
@@ -21,19 +52,22 @@ class TetrisGameScreen {
       return;
    }
 
+    /** Draws the game screen's static elements and initial score & level. */
     method void drawStatic() {
         // draw game window
         do Screen.setColor(true);
-        do Screen.drawLine(200, 30,  300, 30);
-        do Screen.drawLine(200, 230, 300, 230);
-        do Screen.drawLine(200, 30,  200, 230);
-        do Screen.drawLine(300, 30,  300, 230);
+        do Screen.drawLine(200, 30,  301, 30);
+        do Screen.drawLine(200, 231, 301, 231);
+        do Screen.drawLine(200, 30,  200, 231);
+        do Screen.drawLine(301, 30,  301, 231);
 
         // draw next piece window
         do Screen.drawLine(360, 100, 410, 100);
         do Screen.drawLine(360, 150, 410, 150);
         do Screen.drawLine(360, 100, 360, 150);
         do Screen.drawLine(410, 100, 410, 150);
+
+        // generate next piece
 
         // print game text
         do Output.moveCursor(10, 6);
@@ -50,15 +84,94 @@ class TetrisGameScreen {
         return;
     }
 
-    method void incrementScore() {
-        do Output.moveCursor(3, 49);
-        do Output.printInt(score);
+    /** Updates the board */
+    method void updateBoard() {
+        do removeClears();
+        do updateLevel();
+        do updateScore();
         return;
     }
 
-    method void incrementLevel() {
+    /** Get and update the level on the game screen */
+    method void updateLevel() {
+        let level = linesCleared / 5;
         do Output.moveCursor(5, 49);
         do Output.printInt(level);
+        return;
+    }
+
+    /** Get and update the score on the game screen. Reset linesCleared. */
+    method void updateScore() {
+        var int i;
+        var int lineScore;
+        let i = 0;
+        let linesClearedScore = 0;
+        if (linesCleared = 0) { let linesClearedScore = 0    * (level + 1); }
+        if (linesCleared = 1) { let linesClearedScore = 40   * (level + 1); }
+        if (linesCleared = 2) { let linesClearedScore = 100  * (level + 1); }
+        if (linesCleared = 3) { let linesClearedScore = 300  * (level + 1); }
+        if (linesCleared = 4) { let linesClearedScore = 1200 * (level + 1;) }
+        let score = score + linesClearedScore;
+        do Output.moveCursor(3, 49);
+        do Output.printInt(score);
+        let linesCleared = 0;
+        return;
+    }
+
+    /** Scans through the board for full rows.
+        Removes the full rows and updates linesCleared */
+    method void removeClears() {
+        var booleann clearRows;
+        var boolean fullRow; 
+        var int i;
+        var int j;
+        var int rowToClearFrom;
+        var Array row;
+        let clearRows = false; // set to true if there are rows to clear at all
+        let i = 0;
+        while (i < 20) {
+            let j = 0;
+            let row = board[i];
+            let fullRow = true;
+            while (j < 10) {
+                if (~(row[j] & fullRow)) {
+                    let fullRow = false;
+                } 
+            }
+            if (fullRow) { 
+                let linesCleared = linesCleared + 1;
+                if (~clearRows) { 
+                    let rowToClearFrom = i; 
+                    let clearRows = true;
+                }
+            }
+        }
+        do shiftBoard(rowToClearFrom);
+        return;
+    }
+
+    /** Shift the board down when rows are cleared */
+    method void shiftBoard(int rowToClearFrom) {
+        var int i;
+        let i = 0;
+        if (linesCleared > 0) {
+            while (i < (rowToClearFrom)) {
+                let board[rowToClearFrom - i] = board[rowToClearFrom - i - linesCleared];
+                let i = i + 1;
+            }
+        }
+        return;
+    }
+
+    /** Draw the board in the game window */
+    method void drawBoard() {
+        // TODO
+        return;
+    }
+
+    /** Draw the next piece in the game window */
+    method void drawNextPiece() {
+        // TODO
         return;
     }
 

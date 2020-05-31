@@ -1,10 +1,272 @@
-/** Implements a generic Tetris piece. */
+/** Implements a generic Tetris piece (falling state). */
 class Piece {
 
-    field int x;
-    field int y;
+    field Random random;
+    field int pieceEnum; /* enumeration for pieces
+                            0  = Square
+                            1  = T
+                            11 = T90  (T, rotated counter-clockwise (CCW) by 90 degrees) 
+                            12 = T180 (T, rotated CCW by 180 degrees) 
+                            13 = T270 (T, rotated CCW by 270 degrees)
+                            2  = Stick 
+                            21 = Stick90  (Stick, rotated CCW by 90 degrees) 
+                            3  = L
+                            31 = L90  (L, rotated CCW by 90 degrees) 
+                            32 = L180 (L, rotated CCW by 180 degrees) 
+                            33 = L270 (L, rotated CCW by 270 degrees)
+                            4  = MirroredL 
+                            41 = MirroredL90  (MirroredL, rotated CCW by 90 degrees)
+                            42 = MirroredL180 (MirroredL, rotated CCW by 180 degrees)
+                            43 = MirroredL270 (MirroredL, rotated CCW by 270 degrees)
+                            5  = Dog
+                            51 = Dog90  (Dog, rotated CCW by 90 degrees)
+                            52 = Dog180 (Dog, rotated CCW by 180 degrees) 
+                            53 = Dog270 (Dog, rotated CCW by 270 degrees)
+                            6  = MirroredDog
+                            61 = MirroredDog90  (MirroredDog, rotated CCW by 90 degrees)
+                            62 = MirroredDog180 (MirroredDog, rotated CCW by 180 degrees)
+                            63 = MirroredDog270 (MirroredDog, rotated CCW by 270 degrees)*/
+    field Array piece; // array representation of the piece
 
     constructor Piece new() {
-        // TODO
+        var int piece;
+        let random = Random.new(0);
+        let pieceEnum = random.randRange(7);
+        if (pieceEnum = 0) { let piece = buildSquare(); }
+        if (pieceEnum = 1) { let piece = buildT(); }
+        if (pieceEnum = 2) { let piece = buildStick(); }
+        if (pieceEnum = 3) { // TODO }
+        if (pieceEnum = 4) { // TODO }
+        if (pieceEnum = 5) { // TODO }
+        if (pieceEnum = 6) { // TODO }
+        return this;
     }
+
+    /** rotates the piece by 90 degrees counter-clockwise */
+    method void rotate() {
+        // Square
+        if (pieceEnum = 0) { // do nothing }
+        
+        // T
+        if (pieceEnum = 1) {
+            let pieceEnum = 11;
+            let piece = buildT90();
+        }
+        if (pieceEnum = 11) {
+            let pieceEnum = 12;
+            let piece = buildT180();
+        }
+        if (pieceEnum = 12) {
+            let pieceEnum = 13;
+            let piece = buildT270();
+        }
+        if (pieceEnum = 13) {
+            let pieceEnum = 1;
+            let piece = buildT();
+        }
+
+        // Stick
+        if (pieceEnum = 2) {
+            let pieceEnum = 21;
+            let piece = buildStick90();
+        } 
+        if (pieceEnum = 21) {
+            let pieceEnum = 2;
+            let piece = buildStick();
+        }
+
+        // L
+        if (pieceEnum = 3) {
+            let pieceEnum = 31;
+            // TODO
+        }
+        if (pieceEnum = 31) {
+            let pieceEnum = 32;
+            // TODO
+        }
+        if (pieceEnum = 32) {
+            let pieceEnum = 33;
+            // TODO
+        }
+        if (pieceEnum = 33) {
+            let pieceEnum = 3;
+            // TODO
+        }
+
+        // MirroredL
+        if (pieceEnum = 4) {
+            let pieceEnum = 41;
+            // TODO
+        }
+        if (pieceEnum = 41) {
+            let pieceEnum = 42;
+            // TODO
+        }
+        if (pieceEnum = 42) {
+            let pieceEnum = 43;
+            // TODO
+        }
+        if (pieceEnum = 43) {
+            let pieceEnum = 4;
+            // TODO
+        }
+
+        // Dog
+        if (pieceEnum = 5) {
+            let pieceEnum = 51;
+            // TODO
+        }
+        if (pieceEnum = 51) {
+            let pieceEnum = 52;
+            // TODO
+        }
+        if (pieceEnum = 52) {
+            let pieceEnum = 53;
+            // TODO
+        }
+        if (pieceEnum = 53) {
+            let pieceEnum = 5;
+            // TODO
+        }
+
+        // MirroredDog
+        if (pieceEnum = 6) {
+            let pieceEnum = 61;
+            // TODO
+        }
+        if (pieceEnum = 61) {
+            let pieceEnum = 62;
+            // TODO
+        }
+        if (pieceEnum = 62) {
+            let pieceEnum = 63;
+            // TODO
+        }
+        if (pieceEnum = 63) {
+            let pieceEnum = 6;
+            // TODO
+        }
+
+        return;
+    }
+
+    /** returns the array representation of the square piece */
+    function Array buildSquare() {
+        var Array square;
+        var Array row;
+        var int i;
+        var int j;
+        let square = Array.new(2);
+        let row = Array.new(2);
+        while (j < 2) {
+            let row[j] = 2;
+            let j = j + 1;
+        }
+        while (i < 2) {
+            let square[i] = row;
+            let i = i + 1;
+        }
+        return square;
+    }
+
+    /** returns the array representation of the T piece */
+    function Array buildT() {
+        var Array T;
+        var Array row;
+        let row = Array.new(3);
+        let T = Array.new(2);
+        let row[0] = 2;
+        let row[1] = 2;
+        let row[2] = 2;
+        let T[1] = row;
+        let row = Array.new(3);
+        let row[0] = 0;
+        let row[1] = 2;
+        let row[2] = 0;
+        let T[0] = row;
+        return T;
+    }
+
+    /** returns the array representation of the T90 piece */
+    function Array buildT90() {
+        var Array T90;
+        var Array row;
+        let row = Array.new(2);
+        let T90 = Array.new(3);
+        let row[0] = 0;
+        let row[1] = 2;
+        let T90[0] = row;
+        let T90[2] = row;
+        let row = Array.new(2);
+        let row[0] = 2;
+        let row[1] = 2;
+        let T90[1] = row;
+        return T90;
+    }
+
+    /** returns the array representation of the T180 piece */
+    function Array buildT180() {
+        var Array T180;
+        var Array row;
+        let row = Array.new(3);
+        let T180 = Array.new(2);
+        let row[0] = 2;
+        let row[1] = 2;
+        let row[2] = 2;
+        let T180[0] = row;
+        let row = Array.new(3);
+        let row[0] = 0;
+        let row[1] = 2;
+        let row[2] = 0;
+        let T180[1] = row;
+        return T180;
+    }
+
+    /** returns the array representation of the T270 piece */
+    function Array buildT270() {
+        var Array T270;
+        var Array row;
+        let row = Array.new(2);
+        let T270 = Array.new(3);
+        let row[0] = 2;
+        let row[1] = 0;
+        let T270[0] = row;
+        let T270[2] = row;
+        let row = Array.new(2);
+        let row[0] = 2;
+        let row[1] = 2;
+        let T270[1] = row;
+        return T270;
+    }
+
+    /** returns the array representation of the Stick piece */
+    function Array buildStick() {
+        var Array Stick;
+        var Array row;
+        var int i;
+        let Stick = Array.new(4);
+        let row = Array.new(1);
+        let row[0] = 2;
+        while (i < 4) {
+            let Stick[i] = row;
+            let i = i + 1;
+        }
+        return Stick;
+    }
+
+    /** returns the array representation of the Stick90 piece */
+    function Array buildStick90() {
+        var Array Stick90;
+        var Array row;
+        var int i;
+        let Stick90 = Array.new(1);
+        let row = Array.new(4);
+        while (i < 4) {
+            let row[i] = 2;
+            let i = i + 1;
+        }
+        let Stick90[0] = row;
+        return Stick90;
+    }
+
 }
