@@ -1,0 +1,85 @@
+/** Implements a graphical Tetris game screen. */
+class TetrisGameScreen {
+
+    field int score;
+    field int level;
+    field Array board;
+    field Piece activePiece;
+    field Piece nextPiece;
+
+    constructor TetrisGameScreen new() {
+        // declare and initialize variables
+        var int i;
+        var Array row;
+        let score = 0;
+        let level = 1;
+
+        // initialize board
+        let i = 0;
+        let row = Array.new(10);
+        while (i < 10) {
+            let row[i] = false;
+            let i = i + 1;
+        }
+        let i = 0;
+        let board = Array.new(20);
+        while (i < 20) {
+            let board[i] = row;
+            let i = i + 1;
+        }
+
+        // draw game screen
+        do drawStatic();
+        return this;
+    }
+
+   /** Disposes this game. */
+   method void dispose() {
+      do activePiece.dispose();
+      do nextPiece.dispose();
+      do Memory.deAlloc(this);
+      return;
+   }
+
+    method void drawStatic() {
+        // draw game window
+        do Screen.setColor(true);
+        do Screen.drawLine(200, 30,  301, 30);
+        do Screen.drawLine(200, 231, 301, 231);
+        do Screen.drawLine(200, 30,  200, 231);
+        do Screen.drawLine(301, 30,  301, 231);
+
+        // draw next piece window
+        do Screen.drawLine(360, 100, 410, 100);
+        do Screen.drawLine(360, 150, 410, 150);
+        do Screen.drawLine(360, 100, 360, 150);
+        do Screen.drawLine(410, 100, 410, 150);
+
+        // print game text
+        do Output.moveCursor(10, 6);
+        do Output.printString("T E T R I S");
+        do Output.moveCursor(3, 39);
+        do Output.printString("Score: ");
+        do Output.printInt(score);
+        do Output.moveCursor(5, 39);
+        do Output.printString("Level: ");
+        do Output.printInt(level);
+        do Output.moveCursor(9, 39);
+        do Output.printString("Next:");
+
+        return;
+    }
+
+    method void incrementScore() {
+        do Output.moveCursor(3, 49);
+        do Output.printInt(score);
+        return;
+    }
+
+    method void incrementLevel() {
+        do Output.moveCursor(5, 49);
+        do Output.printInt(level);
+        return;
+    }
+
+}
